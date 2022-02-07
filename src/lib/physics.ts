@@ -1,11 +1,11 @@
 import { World, Body, Plane, NaiveBroadphase, Vec3 } from "cannon-es";
-import { Mesh, Vector3, Quaternion } from "three";
+import { Mesh, Vector3, Quaternion, Group } from "three";
 
 const FIXED_TIME_STEP = 1.0 / 60.0; // seconds
 const MAX_SUB_STEPS = 3;
 
 export interface PhysicsObject {
-  mesh: Mesh;
+  mesh: Mesh | Group;
   body: Body;
 }
 
