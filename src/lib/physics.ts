@@ -27,7 +27,7 @@ export const init = (world: World) => {
 };
 
 // Start the simulation loop
-export const update = (world: World, delta: number) => {
+export const update = (world: World) => {
   world.fixedStep();
 };
 

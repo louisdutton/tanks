@@ -38,14 +38,7 @@ const useKeyboard = (options: Options = { down: {}, up: {} }) => {
     return codes.every((c) => keys.current[c]) ?? false;
   };
 
-  /** Returns the sum of the supplied axis definition.
-   * ```
-   * // Only left arrow key held
-   * const horizontal = axis('ArrowLeft', 'ArrowRight') // Returns -1
-   * // Both or neither arrows keys held
-   * const horizontal = axis('ArrowLeft', 'ArrowRight') // Returns 0
-   * ```
-   */
+  /** Returns the sum of the supplied axis definition. */
   const axis = (negative: Key, positive: Key): -1 | 0 | 1 => {
     return (+pressed(positive) - +pressed(negative)) as -1 | 0 | 1;
   };
