@@ -21,7 +21,7 @@ export const create = ({ mesh: tank }: PhysicsObject): PhysicsObject => {
   const shape = new Box(new Vec3(0.1, 0.1, 0.25));
   const body = new Body({ mass, shape });
   body.position.copy(mesh.position as unknown as Vec3);
-  body.applyImpulse(new Vec3(0, 0, 1));
+  body.applyImpulse(new Vec3(0, 0, 200));
 
   return { mesh, body };
 };
