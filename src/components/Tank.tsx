@@ -1,14 +1,14 @@
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Body, Box, Vec3 } from "cannon-es";
+import { useBox } from "@react-three/cannon";
 import { useEffect, useRef, useState } from "react";
-import { Group, Mesh } from "three";
 import { PhysicsObject } from "../lib/physics";
 import useKeyboard from "../lib/useKeyboard";
 import { useListener } from "../lib/useListener";
 import { throttle } from "../lib/utils";
 import { PositionalAudio } from "./PositionalAudio";
 import * as Shell from "../lib/shell";
+import { Object3D } from "three";
 
 const MOVEMENT_SPEED = 500;
 const ROTATION_SPEED = 1;
@@ -17,25 +17,26 @@ const MODEL_URL = "/model/tank.glb";
 const CREDITS =
   '"Stylized Tank" (https://skfb.ly/6G86x) by makcutka250 is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).';
 
-export const update = (
-  { body, mesh }: PhysicsObject,
-  movement: number,
-  rotation: number,
-  delta: number
-) => {
-  if (movement) {
-    mesh.translateZ(1 * delta);
-    body.applyForce(new Vec3(0, 0, 1000));
-  }
-  if (rotation) body.applyTorque(new Vec3(0, -rotation * ROTATION_SPEED, 0));
-};
+// export const update = (
+//   { body, mesh }: PhysicsObject,
+//   movement: number,
+//   rotation: number,
+//   delta: number
+// ) => {
+//   if (movement) {
+//     mesh.translateZ(1 * delta);
+//     // body.applyForce(new Vec3(0, 0, 1000));
+//   }
+//   //   if (rotation) body.applyTorque(new Vec3(0, -rotation * ROTATION_SPEED, 0));
+// };
 
 const Tank = () => {
-  const tankRef = useRef<PhysicsObject>();
+  const ref = useRef<Object3D>();
+  //   const [, api] = useBox(() => ({ mass: 10, position: [0, 1, 0] }));
   const shellsRef = useRef<PhysicsObject[]>([]);
-  const gltf = useGLTF(MODEL_URL);
-  const { scene: obj } = gltf;
-  const { scene } = useThree();
+  //   const gltf = useGLTF(MODEL_URL);
+  //   const { scene: obj } = gltf;
+  //   const { scene } = useThree().scene;
   const listener = useListener();
   const shotSound = useRef<THREE.PositionalAudio>(null);
   const { axis } = useKeyboard({
@@ -44,26 +45,18 @@ const Tank = () => {
     },
   });
 
-  const add = (obj: PhysicsObject) => {
-    scene.add(obj.mesh);
-  };
-
-  // const objects = useRef<PhysicsObject[]>([]);
-
   // throttled fire
   const handleFire = throttle(() => {
-    const tank = tankRef.current;
-    if (!tank) return;
-
-    const shell = Shell.create(tank);
-    shellsRef.current?.push(shell);
-    // objects.current.push(shell);
-    add(shell);
+    // const tank = tankRef.current;
+    // if (!tank) return;
+    // const shell = Shell.create(tank);
+    // shellsRef.current?.push(shell);
+    // // objects.current.push(shell);
+    // add(shell);
     // shell.body.addEventListener("collide", () => {
     //   objects.current.filter((i) => i.body.id != shell.body.id);
     //   // world.removeBody(shell.body); FIXME causes freeze
     // });
-
     // audio
     const sound = shotSound.current;
     if (sound) {
@@ -75,16 +68,13 @@ const Tank = () => {
 
   useFrame(({ camera }, delta) => {
     // guard
-    const tank = tankRef.current;
-    const shells = shellsRef.current;
-    if (!tank || !shells) return;
-
-    // input
-    const rotation = axis("KeyA", "KeyD");
-    const movement = axis("KeyS", "KeyW");
-
+    // const tank = ref;
+    // const shells = shellsRef.current;
+    // if (!tank || !shells) return;
+    // // input
+    // const rotation = axis("KeyA", "KeyD");
+    // const movement = axis("KeyS", "KeyW");
     // console.log(rotation);
-
     // systems
     // Tank.update(tank, movement, rotation, delta);
     // Shell.update(shells, delta);
@@ -96,50 +86,55 @@ const Tank = () => {
     // if (objects.current) Physics.updatePositions(objects.current);
   });
 
+  //@ts-ignore
+  //TODO: PR fix
+  const { nodes, materials } = useGLTF("/model/tank.glb");
+
   useEffect(() => {
-    // const _objects = objects.current;
-    // if (!objects) throw "objects array is undefined.";
-
-    // const tank = Tank.create(obj);
-    // tankRef.current = tank;
-    // _objects.push(tank);
-
-    // init
-    // Physics.init(world);
-
-    // const block = Obstacle.create(0, 5, 0);
-    // scene.add(block.mesh);
-    // world.addBody(block.body);
-    // objects.push(block);
-
     const ctx = listener.context;
     const filter = new BiquadFilterNode(ctx, { type: "bandpass" });
     listener.setFilter(filter);
   }, []);
 
   return (
-    <primitive
-      object={obj}
-      scale={0.5}
-      onClick={() => {
-        listener.context.resume();
-      }}
-    >
-      <PositionalAudio
-        listener={listener}
-        url={"/audio/tank-engine.wav"}
-        loop
-        autoplay
-      />
-      <PositionalAudio
-        ref={shotSound}
-        listener={listener}
-        url={"/audio/tank-shot.flac"}
-        loop={false}
-        autoplay={false}
-      />
-    </primitive>
+    <group ref={ref} dispose={null}>
+      <group rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh
+          geometry={nodes.mesh_1.geometry}
+          material={materials.material_0}
+        />
+        {/* <mesh
+          geometry={nodes.mesh_0.geometry}
+          material={materials.material_1}
+        /> */}
+        <PositionalAudio
+          listener={listener}
+          url={"/audio/tank-engine.wav"}
+          loop
+          autoplay
+        />
+        <PositionalAudio
+          ref={shotSound}
+          listener={listener}
+          url={"/audio/tank-shot.flac"}
+          loop={false}
+          autoplay={false}
+        />
+      </group>
+    </group>
   );
+  //   return (
+  //     <primitive
+  //       ref={ref}
+  //       object={obj}
+  //       scale={0.5}
+  //       onClick={() => {
+  //         listener.context.resume();
+  //       }}
+  //     >
+  //
+  //     </primitive>
+  //   );
 };
 
 useGLTF.preload(MODEL_URL);
